@@ -40,6 +40,7 @@ export class OffersService {
       );
     }
     item.raised = raised;
+    await this.wishesRepository.save(item);
     const offer = this.offersRepository.create({
       ...createOfferDto,
       item: item,

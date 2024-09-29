@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -9,7 +8,6 @@ import { CreateWishDto } from './dto/create-wish.dto';
 import { UpdateWishDto } from './dto/update-wish.dto';
 import { UsersService } from '../users/users.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../users/entities/user.entity';
 import { FindManyOptions, Repository } from 'typeorm';
 import { Wish } from './entities/wish.entity';
 import { responseWishDto } from './selectors/responseWishDto';
@@ -102,6 +100,12 @@ export class WishesService {
     const sourceWish = await this.findOne(wishId);
     if (!sourceWish) {
       throw new NotFoundException(`Wish with id ${wishId} not found`);
+    }
+    const isExists = !!(await this.wishesRepository.findOne({
+      where: {owner: {id: owner.id}, name: sourceWish.name},
+    }));
+    if (isExists) {
+      throw new ConflictException(`Wish with name ${sourceWish.name} already exists`);
     }
     const newWish = this.wishesRepository.create({
       ...sourceWish,
